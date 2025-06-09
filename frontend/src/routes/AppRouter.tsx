@@ -50,13 +50,13 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/groups/:groupId/members"
-            element={
-              <PrivateRoute>
-                <GroupMembersPage />
-              </PrivateRoute>
-            }
-          />
+			path="/groups/:groupId/members"
+			element={
+				<PrivateRoute>
+						<GroupMembersPage group={groupData} onBack={handleBack} />
+				</PrivateRoute>
+			}
+		  />
           <Route path="/groups/:groupId/debts" element={<GroupDebtsPage />} />
           <Route path="/test" element={<TestApiComponent />} />
           <Route
