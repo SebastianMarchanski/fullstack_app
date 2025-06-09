@@ -56,5 +56,6 @@ jobs:
           args: >
             -Dsonar.projectKey=SebastianMarchanski_fullstack_app
             -Dsonar.organization=sebastianmarchanski
+            -Dsonar.java.binaries=backend/PASIR_Marchanski_Sebastian/target/classes
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
