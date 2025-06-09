@@ -1,0 +1,15 @@
+
+sonar.projectKey=SebastianMarchanski_fullstack_app
+sonar.organization=sebastianmarchanski
+sonar.host.url=https://sonarcloud.io
+
+sonar.modules=backend.frontend
+
+backend.sonar.projectBaseDir=backend/
+backend.sonar.sources=src/main
+backend.sonar.java.binaries=target/classes
+
+
+frontend.sonar.projectBaseDir=frontend
+frontend.sonar.sources=src
+frontend.sonar.exclusions=**/*.spec.ts,**/*.test.tsx,**/__tests__/**
