@@ -1,0 +1,76 @@
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+# ===== WSPÓLNE (dla całego repo) =====
+.DS_Store
+*.log
+*.tmp
+
+# ===== FRONTEND (.gitignore dla /frontend) =====
+/frontend/node_modules/
+/frontend/dist/
+/frontend/dist-ssr/
+/frontend/.local
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/pnpm-debug.log*
+/frontend/lerna-debug.log*
+/frontend/.eslintcache
+/frontend/.next/
+/frontend/.env
+/frontend/.vscode/
+!/frontend/.vscode/extensions.json
+/frontend/.idea
+/frontend/*.suo
+/frontend/*.ntvs*
+/frontend/*.njsproj
+/frontend/*.sln
+/frontend/*.sw?
+
+# ===== BACKEND (.gitignore dla /backend) =====
+/backend/target/
+/backend/.classpath
+/backend/.project
+/backend/.settings/
+/backend/.vscode/
+/backend/.idea
+/backend/*.iml
+/backend/.env
+/backend/build/
+/backend/.apt_generated
+/backend/.factorypath
+/backend/.springBeans
+/backend/.sts4-cache
+/backend/.mvn/wrapper/maven-wrapper.jar
