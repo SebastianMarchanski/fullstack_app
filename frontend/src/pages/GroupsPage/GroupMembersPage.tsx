@@ -1,6 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* src/pages/GroupMembersPage/GroupMembersPage.tsx */
 import React, { useEffect, useState } from "react";
 import { groupsApi } from "../../api/groupsApi";
 import { useAuth } from "../../context/useAuth";
@@ -9,6 +6,7 @@ import AddGroupTransaction from "./AddGroupTransaction";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import { toast } from "react-toastify";
 import { useBalance } from "../../components/BalanceBar/useBalance";
+import { useParams, useNavigate } from "react-router-dom"; // ✅ dodane
 
 interface Group {
   id: number;
@@ -23,11 +21,6 @@ interface Member {
   userEmail: string;
 }
 
-interface Props {
-  group: Group;
-  onBack: () => void;
-}
-
 interface Debt {
   id: number;
   debtor: { email: string };
@@ -38,67 +31,84 @@ interface Debt {
   confirmedByCreditor: boolean;
 }
 
-const GroupMembersPage: React.FC<Props> = ({ group, onBack }) => {
+const GroupMembersPage: React.FC = () => {
+  const { groupId } = useParams<{ groupId: string }>(); // ✅ pobranie z URL
+  const navigate = useNavigate(); // ✅ cofanie
   const { user } = useAuth();
+  const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [debts, setDebts] = useState<Debt[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const { refreshBalance } = useBalance();
-  useEffect(() => {
-    fetchMembers();
-  }, [group]);
 
-  const fetchMembers = async () => {
-    const data = await groupsApi.getGroupMembers(group.id);
-    const debtsData = await groupsApi.getDebts(group.id);
+  useEffect(() => {
+    if (groupId) {
+      fetchGroup();
+    }
+  }, [groupId]);
+
+  const fetchGroup = async () => {
+    try {
+      const groupData = await groupsApi.getGroup(Number(groupId));
+      setGroup(groupData);
+      fetchMembers(groupData.id);
+    } catch (error) {
+      toast.error("Nie udało się załadować grupy.");
+    }
+  };
+
+  const fetchMembers = async (id: number) => {
+    const data = await groupsApi.getGroupMembers(id);
+    const debtsData = await groupsApi.getDebts(id);
     setDebts(debtsData);
     setMembers(data);
   };
 
   const handleAddMember = async () => {
+    if (!group) return;
     try {
       await groupsApi.addMember(group.id, newMemberEmail);
       setNewMemberEmail("");
-      fetchMembers();
+      fetchMembers(group.id);
     } catch (error: any) {
-      console.error("Błąd dodawania członka:", error);
-      alert(error.message || "Wystąpił błąd.");
+      toast.error(error.message || "Wystąpił błąd.");
     }
   };
 
   const handleRemove = async (id: number) => {
+    if (!group) return;
     await groupsApi.removeMember(id);
-    fetchMembers();
+    fetchMembers(group.id);
   };
 
   const handleDeleteDebt = async (debtId: number) => {
     try {
       await groupsApi.deleteDebt(debtId);
       toast.success("Dług usunięty!");
-      // Odśwież listę długów:
-      fetchMembers();
+      if (group) fetchMembers(group.id);
     } catch (error) {
       toast.error("Błąd usuwania długu.");
-      console.error(error);
     }
   };
 
   const handleMarkAsPaid = async (debtId: number) => {
     await groupsApi.markDebtAsPaid(debtId);
-    fetchMembers(); // odśwież dane
+    if (group) fetchMembers(group.id);
   };
 
   const handleConfirmPayment = async (debtId: number) => {
     await groupsApi.confirmDebtPayment(debtId);
     refreshBalance(null);
-    fetchMembers(); // odśwież dane
+    if (group) fetchMembers(group.id);
   };
+
+  if (!group) return <div>Ładowanie grupy...</div>;
 
   return (
     <div className={styles.container}>
-      <button onClick={onBack} className={styles.backButton}>
+      <button onClick={() => navigate(-1)} className={styles.backButton}>
         Wróć do grup
       </button>
       <h2>Członkowie grupy: {group.name}</h2>
@@ -120,18 +130,17 @@ const GroupMembersPage: React.FC<Props> = ({ group, onBack }) => {
 
       <AddGroupTransaction
         groupId={group.id}
-        onTransactionAdded={fetchMembers}
+        onTransactionAdded={() => fetchMembers(group.id)}
       />
+
       <ul className={styles.memberList}>
         {members.map((member) => (
           <li key={member.id}>
             {member.userEmail}
             {member.userId === group.ownerId && (
-              <>
-                <span className={styles.adminLabel}>(admin)</span>
-              </>
+              <span className={styles.adminLabel}>(admin)</span>
             )}
-            {user?.id == group.ownerId && member.userId !== group.ownerId && (
+            {user?.id === group.ownerId && member.userId !== group.ownerId && (
               <button
                 onClick={() => {
                   setSelectedMemberId(member.id);
@@ -144,74 +153,6 @@ const GroupMembersPage: React.FC<Props> = ({ group, onBack }) => {
           </li>
         ))}
       </ul>
+
       {debts.length > 0 && (
         <div className={styles.debtsSection}>
-          <h3>Długi w grupie:</h3>
-          <ul className={styles.debtsList}>
-            {debts.map((debt) => (
-              <li key={debt.id}>
-                <div className="flex">
-                  <strong>{debt.debtor.email}</strong> jest winien{" "}
-                  <strong>{debt.creditor.email}</strong>{" "}
-                  {debt.amount.toFixed(2)} zł
-                  <strong> {debt.title}</strong>
-                </div>
-                <div className="flex">
-                  {debt.markedAsPaid && debt.confirmedByCreditor && (
-                    <span className={styles.paidLabel}>✔ Opłacono</span>
-                  )}
-                  {!debt.markedAsPaid && user?.email === debt.debtor.email && (
-                    <button
-                      onClick={() => handleMarkAsPaid(debt.id)}
-                      className={styles.paidButton}
-                    >
-                      Opłać
-                    </button>
-                  )}
-                  {debt.markedAsPaid &&
-                    !debt.confirmedByCreditor &&
-                    user?.email === debt.creditor.email && (
-                      <button
-                        onClick={() => handleConfirmPayment(debt.id)}
-                        className={styles.paidButton}
-                      >
-                        Potwierdź opłacenie
-                      </button>
-                    )}
-                  {user?.email === debt.creditor.email && (
-                    <button
-                      className={styles.confirmButton}
-                      onClick={() => handleDeleteDebt(debt.id)}
-                    >
-                      Usuń
-                    </button>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {showConfirmModal && (
-        <ConfirmModal
-          visible={showConfirmModal}
-          message="Czy na pewno chcesz usunąć tego użytkownika z grupy?"
-          onConfirm={async () => {
-            if (selectedMemberId !== null) {
-              await handleRemove(selectedMemberId);
-              setSelectedMemberId(null);
-              setShowConfirmModal(false);
-            }
-          }}
-          onCancel={() => {
-            setSelectedMemberId(null);
-            setShowConfirmModal(false);
-          }}
-        />
-      )}
-    </div>
-  );
-};
-
-export default GroupMembersPage;
