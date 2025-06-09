@@ -51,6 +51,10 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v5
-        env:
+      uses: SonarSource/sonarqube-scan-action@v5.0.0
+      with:
+          args: >
+          -Dsonar.projectKey=SebastianMarchanski_fullstack_app
+          -Dsonar.organization=sebastianmarchanski
+      env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
